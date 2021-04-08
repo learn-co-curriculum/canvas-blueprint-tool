@@ -10,7 +10,9 @@ OptionParser.new do |opts|
     ====================
 
     canvas-blueprint-tool --associate --course <course_id> --blueprint <blueprint_id>
-    canvas-blueprint-tool --publish --course <course_id>
+    canvas-blueprint-tool --create-and-associate --blueprint <blueprint_id>
+    canvas-blueprint-tool --sync-courses --blueprint <course_id>
+    canvas-blueprint-tool --sync-courses --blueprint <course_id> --publish-newly-associated
 
   EOBANNER
 
@@ -19,21 +21,30 @@ OptionParser.new do |opts|
             options[:version] = true
           end
   opts.on("-a", "--associate", 
-          "Associate a course with a blueprint. Requires course and blueprint flags") do |associate| 
+          "Associate a course with a blueprint. Requires --course and --blueprint flags") do |associate| 
             options[:associate] = true
           end
-  opts.on("-p", "--publish", 
-          "Publish a course. Requires course flag") do |publish| 
-            options[:publish] = true
+  opts.on("-s", "--sync-courses", 
+          "Sync a blueprint course and its associated courses. Requires --blueprint flag") do |publish| 
+            options[:sync] = true
+          end
+  opts.on("-p", "--publish-newly-associated", 
+          "Used with -s. Publishes any courses newly associated with a blueprintt. Requires --sync-courses and --blueprint flag") do |publish| 
+            options[:publish_newly_associated] = true
+          end
+  opts.on("--create-and-associate", 
+          "Creates a new course and associates it with the provided blueprint. Requires --blueprint flag") do |create_and_associate| 
+            options[:create_and_associate] = true
           end
   opts.on("-cCOURSE", "--course COURSE", 
           "Provide a course ID. Used for associating and publishing") do |course_id| 
             options[:course_id] = course_id
           end
   opts.on("-bCOURSE", "--blueprint COURSE", 
-          "Provide a blueprint course ID. Used for associating a course to a blueprint") do |course_id| 
-            options[:blueprint_id] = course_id
+          "Provide a blueprint course ID. Used for associating a course to a blueprint") do |blueprint_id| 
+            options[:blueprint_id] = blueprint_id
           end
+  
 
 end.parse!
 
@@ -47,15 +58,20 @@ if options[:associate]
     raise Exception.new "Associate option requires course and blueprint IDs using the --course and --blueprint flags"
     abort
   end
-  CanvasBlueprintTool.new(mode: 'associate',  course_id: options[:course_id], blueprint_id: options[:blueprint_id])
+  CanvasBlueprintTool.new(mode: 'associate',  
+                          course_id: options[:course_id], 
+                          blueprint_id: options[:blueprint_id])
   abort
 end
 
-if options[:publish]
-  if !options[:course_id]
-    raise Exception.new "Publish option requires a course ID using the --course flag"
+if options[:sync]
+  if !options[:blueprint_id]
+    raise Exception.new "Sync option requires a blueprint course ID using the --blueprint flag"
     abort
   end
-  CanvasBlueprintTool.new(mode: 'publish',  course_id: options[:course_id])
+  CanvasBlueprintTool.new(mode: 'sync',  
+                          blueprint_id: options[:blueprint_id], 
+                          publish_newly_associated: !!options[:publish_newly_associated]
+                          )
   abort
 end
