@@ -8,8 +8,8 @@ class CanvasBlueprintTool
       puts VERSION
     when 'associate'
       CanvasInterface.associate(options)
-    when 'publish'
-      CanvasInterface.publish(options)
+    when 'sync'
+      CanvasInterface.sync(options)
     else
       puts VERSION
     end
